@@ -16,3 +16,19 @@ jobs:
           echo "src/crypto exists: " && [ -d src/crypto ]
           echo "src/agents exists: " && [ -d src/agents ]
           echo "README.md exists: " && [ -f README.md ]
+  python-agent:
+    name: 🐍 Python AI Agent Tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - name: Install dependencies
+      run: |
+        pip install pytest
+    - name: Run AI agent tests
+      run: |
+        pytest --maxfail=1 --disable-warnings -q src/agents/ai_agent.py
+
