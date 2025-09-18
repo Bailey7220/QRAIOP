@@ -8,7 +8,8 @@
 
 ## Quick Start
 
-git clone https://github.com/Bailey7220/qraiop.git
+git clone https://github.com/Bailey7220/qraiop.git 
+
 cd qraiop
 
 Implement your scripts and code here
