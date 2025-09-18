@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-\"\"\"
+"""
 QRAIOP Intelligent Chaos Engineering Module
 Simulates failure injection and validates self-healing.
-\"\"\"
+"""
 
 import time
 import random
