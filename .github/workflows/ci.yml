@@ -40,3 +40,14 @@ jobs:
       - name: Run chaos engine script
         run: |
           python src/chaos/chaos_engine.py
+  go-controller:
+    name: 🐹 Go Controller Demo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+      - name: Run Go controller demo
+        run: go run src/controllers/main.go
