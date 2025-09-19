@@ -64,3 +64,17 @@ jobs:
         run: pip install yamllint
       - name: Lint all YAML files
         run: yamllint infrastructure/kubernetes/manifests/*.yaml
+  rust-crypto:
+    name: 🦀 Rust Crypto Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: fmt, clippy
+      - name: Test Rust crypto module
+        run: |
+          cd src/crypto
+          cargo test --quiet
