@@ -69,11 +69,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          components: fmt, clippy
       - name: Test Rust crypto module
         run: |
           cd src/crypto
