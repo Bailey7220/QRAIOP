@@ -1,6 +1,5 @@
 //! QRAIOP Quantum-Safe Cryptography Demo
 
-use oqs::kem::Algorithm;
 use qraiop_crypto::{generate_kyber768_keypair};
 
 fn main() {
@@ -19,4 +18,3 @@ fn main() {
         }
     }
 }
-
