@@ -61,9 +61,10 @@ mod tests {
         assert!(verify_signature(&kp, msg, &signature));
 
         // Tamper and ensure verification fails
-        let mut bad_bytes = signature.as_ref().to_vec();
-        bad_bytes[0] ^= 0xFF;
-        let bad_sig = Signature::new_from_bytes(&bad_bytes).expect("Invalid signature bytes");
+        let mut bad = signature.as_ref().to_vec();
+        bad[0] ^= 0xFF;
+        // Convert bad bytes to Signature
+        let bad_sig = Signature::try_from(&bad[..]).expect("Bad signature bytes");
         assert!(!verify_signature(&kp, msg, &bad_sig));
     }
 }
