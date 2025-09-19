@@ -1,45 +1,45 @@
 //! QRAIOP Quantum-Safe Cryptography Library
 
-use oqs::kem::{Kem, Algorithm as KemAlg};
-use oqs::sig::{Sig, Algorithm as SigAlg};
+use oqs::kem::{Kem, Algorithm as KemAlg, PublicKey as KemPublicKey, SecretKey as KemSecretKey};
+use oqs::sig::{Sig, Algorithm as SigAlg, Signature, PublicKey as SigPublicKey, SecretKey as SigSecretKey};
 
+/// KEM keypair
 pub struct KemKeypair {
-    pub public_key: oqs::kem::PublicKey,
-    pub secret_key: oqs::kem::SecretKey,
+    pub public_key: KemPublicKey,
+    pub secret_key: KemSecretKey,
 }
 
+/// Generate a Kyber768 keypair
 pub fn generate_kyber768_keypair() -> Result<KemKeypair, oqs::Error> {
     let kem = Kem::new(KemAlg::Kyber768)?;
     let (pk, sk) = kem.keypair()?;
     Ok(KemKeypair { public_key: pk, secret_key: sk })
 }
 
-// Structure for signature keypair
+/// Signature keypair
 pub struct SigKeypair {
-    pub public_key: oqs::sig::PublicKey,
-    pub secret_key: oqs::sig::SecretKey,
+    pub public_key: SigPublicKey,
+    pub secret_key: SigSecretKey,
 }
 
-/// Generate Dilithium2 keypair
+/// Generate a Dilithium2 keypair
 pub fn generate_dilithium2_keypair() -> Result<SigKeypair, oqs::Error> {
-    let sig = Sig::new(SigAlg::Dilithium2)?;
-    let (pk, sk) = sig.keypair()?;
+    let engine = Sig::new(SigAlg::Dilithium2)?;
+    let (pk, sk) = engine.keypair()?;
     Ok(SigKeypair { public_key: pk, secret_key: sk })
 }
 
-/// Sign a message
-pub fn sign_message(sk: &SigKeypair, message: &[u8]) -> Result<oqs::sig::Signature, oqs::Error> {
-    let mut engine = Sig::new(SigAlg::Dilithium2)?;
+/// Sign a message with Dilithium2
+pub fn sign_message(sk: &SigKeypair, message: &[u8]) -> Result<Signature, oqs::Error> {
+    let engine = Sig::new(SigAlg::Dilithium2)?;
     engine.sign(message, &sk.secret_key)
 }
 
-/// Verify a signature
-pub fn verify_signature(pk: &SigKeypair, message: &[u8], signature: &oqs::sig::Signature) -> bool {
-    let mut engine = Sig::new(SigAlg::Dilithium2).unwrap();
+/// Verify a Dilithium2 signature
+pub fn verify_signature(pk: &SigKeypair, message: &[u8], signature: &Signature) -> bool {
+    let engine = Sig::new(SigAlg::Dilithium2).unwrap();
     engine.verify(message, signature, &pk.public_key).is_ok()
 }
-
-
 
 #[cfg(test)]
 mod tests {
@@ -47,27 +47,23 @@ mod tests {
 
     #[test]
     fn test_kyber768_keypair() {
-        let kem = Kem::new(Algorithm::Kyber768).unwrap();
-        let kp = generate_kyber768_keypair().unwrap();
+        let kem = Kem::new(KemAlg::Kyber768).unwrap();
+        let kp = generate_kyber768_keypair().expect("KEM keypair failed");
         assert_eq!(kp.public_key.as_ref().len(), kem.length_public_key());
         assert_eq!(kp.secret_key.as_ref().len(), kem.length_secret_key());
-
     }
-}
-
-#[cfg(test)]
-mod sig_tests {
-    use super::*;
 
     #[test]
     fn test_dilithium2_sign_verify() {
-        let kp = generate_dilithium2_keypair().expect("Keypair gen failed");
+        let kp = generate_dilithium2_keypair().expect("Signature keypair failed");
         let msg = b"QRAIOP signing test";
         let signature = sign_message(&kp, msg).expect("Signing failed");
         assert!(verify_signature(&kp, msg, &signature));
-        // Tamper and fail
-        let mut bad = signature.clone();
-        bad[0] ^= 0xFF;
-        assert!(!verify_signature(&kp, msg, &bad));
+
+        // Tamper and ensure verification fails
+        let mut bad_bytes = signature.as_ref().to_vec();
+        bad_bytes[0] ^= 0xFF;
+        let bad_sig = Signature::try_from(bad_bytes.as_slice()).unwrap();
+        assert!(!verify_signature(&kp, msg, &bad_sig));
     }
 }
