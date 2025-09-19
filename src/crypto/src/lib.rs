@@ -1,7 +1,6 @@
 //! QRAIOP Quantum-Safe Cryptography Library
 
 use oqs::kem::{Kem, Algorithm, PublicKey, SecretKey};
-use oqs::kem::Algorithm;
 
 pub struct KemKeypair {
     pub public_key: oqs::kem::PublicKey,
