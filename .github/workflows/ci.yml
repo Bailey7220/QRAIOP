@@ -57,6 +57,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Lint Kubernetes manifests
-        uses: instrumenta/kubeval-action@v0.0.14
+        uses: instrumenta/kubeval-action@master
         with:
           files: 'infrastructure/kubernetes/manifests/*.yaml'
