@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import logging
+import json
 
 def main():
     parser = argparse.ArgumentParser(description="QRAIOP AI Orchestration Agent")
@@ -10,13 +11,11 @@ def main():
     logging.basicConfig(level=logging.INFO)
     logging.info("🤖 Starting QRAIOP AI Agent")
 
-    # Example behavior
     result = {"status": "success"}
     if args.metrics:
-        # Dummy metrics for now
         result["metrics"] = {"inference_time_ms": 42, "accuracy": 0.99}
 
-    print(result)
+    print(json.dumps(result))
 
 if __name__ == "__main__":
     main()
