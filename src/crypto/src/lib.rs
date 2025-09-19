@@ -1,6 +1,7 @@
 //! QRAIOP Quantum-Safe Cryptography Library
 
 use oqs::kem::{Kem, Algorithm as KemAlg};
+use oqs::sig::{Sig, Algorithm as SigAlg};
 
 pub struct KemKeypair {
     pub public_key: oqs::kem::PublicKey,
@@ -8,12 +9,10 @@ pub struct KemKeypair {
 }
 
 pub fn generate_kyber768_keypair() -> Result<KemKeypair, oqs::Error> {
-    let kem = Kem::new(Algorithm::Kyber768)?;
+    let kem = Kem::new(KemAlg::Kyber768)?;
     let (pk, sk) = kem.keypair()?;
     Ok(KemKeypair { public_key: pk, secret_key: sk })
 }
-
-use oqs::sig::{Sig, Algorithm as SigAlg};
 
 // Structure for signature keypair
 pub struct SigKeypair {
@@ -29,15 +28,15 @@ pub fn generate_dilithium2_keypair() -> Result<SigKeypair, oqs::Error> {
 }
 
 /// Sign a message
-pub fn sign_message(sk: &SigKeypair, message: &[u8]) -> Result<Vec<u8>, oqs::Error> {
-    let mut sig = Sig::new(SigAlg::Dilithium2)?;
-    Ok(sig.sign(message, &sk.secret_key)?)
+pub fn sign_message(sk: &SigKeypair, message: &[u8]) -> Result<oqs::sig::Signature, oqs::Error> {
+    let mut engine = Sig::new(SigAlg::Dilithium2)?;
+    engine.sign(message, &sk.secret_key)
 }
 
 /// Verify a signature
-pub fn verify_signature(pk: &SigKeypair, message: &[u8], signature: &[u8]) -> bool {
-    let mut sig = Sig::new(SigAlg::Dilithium2).unwrap();
-    sig.verify(message, signature.to_vec(), &pk.public_key).is_ok()
+pub fn verify_signature(pk: &SigKeypair, message: &[u8], signature: &oqs::sig::Signature) -> bool {
+    let mut engine = Sig::new(SigAlg::Dilithium2).unwrap();
+    engine.verify(message, signature, &pk.public_key).is_ok()
 }
 
 
