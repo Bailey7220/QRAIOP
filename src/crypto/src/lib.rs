@@ -71,7 +71,7 @@ mod sig_tests {
     #[test]
     fn test_dilithium2_sign_verify() {
         let kp = generate_dilithium2_keypair().expect("Keypair gen failed");
-        let msg = b\"QRAIOP signing test\";
+        let msg = b"QRAIOP signing test";
         let signature = sign_message(&kp, msg).expect(\"Signing failed\");
         assert!(verify_signature(&kp, msg, &signature));
         // Tamper and fail
