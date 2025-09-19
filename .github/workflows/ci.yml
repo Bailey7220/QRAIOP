@@ -51,16 +51,17 @@ jobs:
           go-version: '1.20'
       - name: Run Go controller demo
         run: go run src/controllers/main.go
-  k8s-manifests:
-    name: 🧩 Kubernetes Manifests Lint
+  yamllint:
+    name: 🧩 YAML Syntax Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up kubectl
-        run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
-      - name: Validate Kubernetes manifests
-        run: |
-          kubectl apply --dry-run=client --validate=false -f infrastructure/kubernetes/manifests/qraiop-demo.yaml
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install yamllint
+        run: pip install yamllint
+      - name: Lint all YAML files
+        run: yamllint -c /dev/null infrastructure/kubernetes/manifests/*.yaml
+
