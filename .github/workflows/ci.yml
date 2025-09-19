@@ -28,6 +28,12 @@ jobs:
     - name: Run AI agent tests
       run: |
         python src/agents/ai_agent.py
+    - name: Install test deps
+      run: pip install pytest
+    - name: Run agent tests
+      run: pytest src/agents/tests --maxfail=1 --disable-warnings -q
+
+        
   chaos-engine:
     name: 🌪️ Chaos Engineering Simulation
     runs-on: ubuntu-latest
