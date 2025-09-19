@@ -1,21 +1,17 @@
 //! QRAIOP Quantum-Safe Cryptography Library
-//! 
-//! Provides post-quantum cryptographic algorithms for quantum-resilient infrastructure.
 
-/// Check if an algorithm is quantum-safe
-pub fn is_quantum_safe(algorithm: &str) -> bool {
-    matches!(algorithm,
-        "ML-KEM-512" | "ML-KEM-768" | "ML-KEM-1024" |
-        "ML-DSA-44" | "ML-DSA-65" | "ML-DSA-87"
-    )
+use oqs::kem::Kem;
+use oqs::kem::Algorithm;
+
+pub struct KemKeypair {
+    pub public_key: Vec<u8>,
+    pub secret_key: Vec<u8>,
 }
 
-/// Get list of supported quantum-safe algorithms
-pub fn supported_algorithms() -> Vec<&'static str> {
-    vec![
-        "ML-KEM-512", "ML-KEM-768", "ML-KEM-1024",
-        "ML-DSA-44", "ML-DSA-65", "ML-DSA-87"
-    ]
+pub fn generate_kyber768_keypair() -> Result<KemKeypair, oqs::Error> {
+    let kem = Kem::new(Algorithm::Kyber768)?;
+    let (pk, sk) = kem.keypair()?;
+    Ok(KemKeypair { public_key: pk, secret_key: sk })
 }
 
 #[cfg(test)]
@@ -23,15 +19,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_quantum_safe_detection() {
-        assert!(is_quantum_safe("ML-KEM-768"));
-        assert!(!is_quantum_safe("RSA-2048"));
-    }
-
-    #[test]
-    fn test_supported_algorithms() {
-        let algorithms = supported_algorithms();
-        assert!(!algorithms.is_empty());
-        assert!(algorithms.contains(&"ML-KEM-768"));
+    fn test_kyber768_keypair() {
+        let kp = generate_kyber768_keypair().expect("Keypair generation failed");
+        assert_eq!(kp.public_key.len(), Kem::new(Algorithm::Kyber768).unwrap().length_public_key());
+        assert_eq!(kp.secret_key.len(), Kem::new(Algorithm::Kyber768).unwrap().length_secret_key());
     }
 }
+
