@@ -11,7 +11,6 @@ use crate::{QraiopError, Result, SecurityLevel};
 use serde::{Deserialize, Serialize};
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-/// Key Encapsulation Mechanism trait
 pub trait KeyEncapsulation {
     type PublicKey: Clone + Serialize + for<'de> Deserialize<'de>;
     type SecretKey: Clone + Zeroize + ZeroizeOnDrop;
@@ -19,18 +18,12 @@ pub trait KeyEncapsulation {
     type SharedSecret: Clone + Zeroize + ZeroizeOnDrop;
 
     fn keypair() -> Result<(Self::PublicKey, Self::SecretKey)>;
-    fn encapsulate(
-        public_key: &Self::PublicKey,
-    ) -> Result<(Self::Ciphertext, Self::SharedSecret)>;
-    fn decapsulate(
-        secret_key: &Self::SecretKey,
-        ciphertext: &Self::Ciphertext,
-    ) -> Result<Self::SharedSecret>;
+    fn encapsulate(public_key: &Self::PublicKey) -> Result<(Self::Ciphertext, Self::SharedSecret)>;
+    fn decapsulate(secret_key: &Self::SecretKey, ciphertext: &Self::Ciphertext) -> Result<Self::SharedSecret>;
     fn security_level() -> SecurityLevel;
     fn algorithm_name() -> &'static str;
 }
 
-/// Digital signature trait
 pub trait DigitalSignature {
     type PublicKey: Clone + Serialize + for<'de> Deserialize<'de>;
     type SecretKey: Clone + Zeroize + ZeroizeOnDrop;
@@ -38,16 +31,11 @@ pub trait DigitalSignature {
 
     fn keypair() -> Result<(Self::PublicKey, Self::SecretKey)>;
     fn sign(secret_key: &Self::SecretKey, message: &[u8]) -> Result<Self::Signature>;
-    fn verify(
-        public_key: &Self::PublicKey,
-        message: &[u8],
-        signature: &Self::Signature,
-    ) -> Result<bool>;
+    fn verify(public_key: &Self::PublicKey, message: &[u8], signature: &Self::Signature) -> Result<bool>;
     fn security_level() -> SecurityLevel;
     fn algorithm_name() -> &'static str;
 }
 
-/// Hash-based signature trait
 pub trait HashBasedSignature: DigitalSignature {
     fn signatures_remaining(secret_key: &Self::SecretKey) -> Result<u64>;
     fn max_signatures() -> u64;
@@ -132,3 +120,4 @@ pub fn benchmark_signature<S: DigitalSignature>() -> Result<PerformanceMetrics> 
         ciphertext_size: 0,
     })
 }
+
