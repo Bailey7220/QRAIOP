@@ -6,7 +6,7 @@
 pub mod pqc;
 pub mod utils;
 
-// Re-export main types
+// Re-export main types publicly
 pub use pqc::{DigitalSignature, HashBasedSignature, KeyEncapsulation};
 
 /// Library version information
