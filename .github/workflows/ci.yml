@@ -86,8 +86,16 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f src/agents/requirements.txt ]; then pip install -r src/agents/requirements.txt; fi
-          if [ -f src/chaos/requirements.txt ]; then pip install -r src/chaos/requirements.txt; fi
+          if [ -f src/agents/requirements.txt ]; then 
+            pip install -r src/agents/requirements.txt
+          else
+            echo "Warning: src/agents/requirements.txt not found"
+          fi
+          if [ -f src/chaos/requirements.txt ]; then 
+            pip install -r src/chaos/requirements.txt
+          else
+            echo "Warning: src/chaos/requirements.txt not found"
+          fi
           pip install pytest pytest-cov flake8 black mypy safety bandit
 
       - name: Lint with flake8
@@ -134,18 +142,19 @@ jobs:
       - name: Run tests
         run: cd src/controllers && go test -v ./...
 
-      - name: Security scan with gosec
-        uses: securecodewarrior/github-action-gosec@v1
-        with:
-          args: '-fmt sarif -out gosec-results.sarif ./src/controllers/...'
+      - name: Install and run gosec
+        working-directory: src/controllers
+        run: |
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          gosec -fmt sarif -out gosec-results.sarif ./...
         continue-on-error: true
 
       - name: Upload gosec scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: 'gosec-results.sarif'
-        continue-on-error: true
+          sarif_file: 'src/controllers/gosec-results.sarif'
+          continue-on-error: true
 
   security-scan:
     runs-on: ubuntu-latest
@@ -166,4 +175,4 @@ jobs:
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
-        continue-on-error: true
+          continue-on-error: true
