@@ -4,7 +4,9 @@ use crate::pqc::KeyEncapsulation;
 use crate::Result;
 
 // Concrete types - direct imports
-use pqcrypto_kyber::kyber512::{keypair, encapsulate, decapsulate, PublicKey, SecretKey, Ciphertext, SharedSecret};
+use pqcrypto_kyber::kyber512::{
+    decapsulate, encapsulate, keypair, Ciphertext, PublicKey, SecretKey, SharedSecret,
+};
 
 pub struct MlKem512;
 
@@ -41,17 +43,21 @@ mod tests {
         let (pk, sk) = MlKem512::keypair().unwrap();
         let (ct, ss1) = MlKem512::encapsulate(&pk).unwrap();
         let ss2 = MlKem512::decapsulate(&sk, &ct).unwrap();
-        
+
         // Compare shared secrets using constant-time comparison
         use std::ptr;
         let ss1_ptr = &ss1 as *const SharedSecret as *const u8;
         let ss2_ptr = &ss2 as *const SharedSecret as *const u8;
         let len = std::mem::size_of::<SharedSecret>();
-        
+
         let equal = unsafe {
-            libc::memcmp(ss1_ptr as *const libc::c_void, ss2_ptr as *const libc::c_void, len) == 0
+            libc::memcmp(
+                ss1_ptr as *const libc::c_void,
+                ss2_ptr as *const libc::c_void,
+                len,
+            ) == 0
         };
-        
+
         assert!(equal, "Shared secrets should match");
     }
 }
