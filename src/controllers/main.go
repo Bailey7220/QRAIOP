@@ -1,16 +1,78 @@
+// src/controllers/main.go
 package main
 
 import (
+    "flag"
     "fmt"
-    "time"
+    "os"
+
+    "k8s.io/apimachinery/pkg/runtime"
+    utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+    clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+    ctrl "sigs.k8s.io/controller-runtime"
+    "sigs.k8s.io/controller-runtime/pkg/healthz"
+    "sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+    qraiopv1 "github.com/Bailey7220/QRAIOP/controllers/api/v1"
+    "github.com/Bailey7220/QRAIOP/controllers/controllers"
 )
 
-// Simple Go controller scaffold
+var (
+    scheme   = runtime.NewScheme()
+    setupLog = ctrl.Log.WithName("setup")
+)
+
+func init() {
+    utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+    utilruntime.Must(qraiopv1.AddToScheme(scheme))
+}
+
 func main() {
-    fmt.Println("🚀 QRAIOP Kubernetes Controller Demo Starting...")
-    for i := 1; i <= 3; i++ {
-        fmt.Printf("Reconciliation loop %d\n", i)
-        time.Sleep(1 * time.Second)
+    var metricsAddr string
+    var enableLeaderElection bool
+    var probeAddr string
+    
+    flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
+    flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+    flag.BoolVar(&enableLeaderElection, "leader-elect", false, "Enable leader election for controller manager.")
+    flag.Parse()
+
+    ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
+
+    mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+        Scheme:                 scheme,
+        MetricsBindAddress:     metricsAddr,
+        Port:                   9443,
+        HealthProbeBindAddress: probeAddr,
+        LeaderElection:         enableLeaderElection,
+        LeaderElectionID:       "qraiop.io",
+    })
+    if err != nil {
+        setupLog.Error(err, "unable to start manager")
+        os.Exit(1)
     }
-    fmt.Println("✅ Controller demo complete!")
+
+    if err = (&controllers.QraiopReconciler{
+        Client: mgr.GetClient(),
+        Scheme: mgr.GetScheme(),
+        Log:    ctrl.Log.WithName("controllers").WithName("Qraiop"),
+    }).SetupWithManager(mgr); err != nil {
+        setupLog.Error(err, "unable to create controller", "controller", "Qraiop")
+        os.Exit(1)
+    }
+
+    if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+        setupLog.Error(err, "unable to set up health check")
+        os.Exit(1)
+    }
+    if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
+        setupLog.Error(err, "unable to set up ready check")
+        os.Exit(1)
+    }
+
+    setupLog.Info("starting manager")
+    if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+        setupLog.Error(err, "problem running manager")
+        os.Exit(1)
+    }
 }
