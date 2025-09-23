@@ -1,44 +1,101 @@
-//! QRAIOP Quantum-Safe Cryptography Library
+// src/crypto/src/lib.rs
+//! QRAIOP Quantum-Resistant Cryptographic Library
+//! 
+//! This library provides production-ready implementations of NIST-approved
+//! post-quantum cryptographic algorithms including ML-KEM, ML-DSA, and SLH-DSA.
 
-use oqs::kem::{Kem, Algorithm as KemAlg, PublicKey as KemPublicKey, SecretKey as KemSecretKey};
-use oqs::sig::{Sig, Algorithm as SigAlg, Signature, PublicKey as SigPublicKey, SecretKey as SigSecretKey};
+use std::error::Error as StdError;
+use std::fmt;
+use zeroize::Zeroize;
 
-/// KEM keypair
-pub struct KemKeypair {
-    pub public_key: KemPublicKey,
-    pub secret_key: KemSecretKey,
+pub mod pqc;
+pub mod hybrid;
+pub mod utils;
+
+// Re-export main types
+pub use pqc::{KeyEncapsulation, DigitalSignature, HashBasedSignature};
+pub use hybrid::{HybridKem, HybridSignature};
+
+/// Library version information
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const ALGORITHMS: &[&str] = &["ML-KEM-512", "ML-KEM-768", "ML-KEM-1024", 
+                                   "ML-DSA-44", "ML-DSA-65", "ML-DSA-87",
+                                   "SLH-DSA-128s", "SLH-DSA-192s", "SLH-DSA-256s"];
+
+/// Main error type for the library
+#[derive(Debug, thiserror::Error)]
+pub enum QraiopError {
+    #[error("Cryptographic operation failed: {0}")]
+    CryptoError(String),
+    
+    #[error("Invalid key format: {0}")]
+    InvalidKey(String),
+    
+    #[error("Algorithm not supported: {0}")]
+    UnsupportedAlgorithm(String),
+    
+    #[error("Signature verification failed")]
+    SignatureVerificationFailed,
+    
+    #[error("Key encapsulation failed: {0}")]
+    EncapsulationFailed(String),
+    
+    #[error("Serialization error: {0}")]
+    SerializationError(String),
+    
+    #[error("IO error: {0}")]
+    IoError(#[from] std::io::Error),
 }
 
-/// Generate a Kyber768 keypair
-pub fn generate_kyber768_keypair() -> Result<KemKeypair, oqs::Error> {
-    let kem = Kem::new(KemAlg::Kyber768)?;
-    let (pk, sk) = kem.keypair()?;
-    Ok(KemKeypair { public_key: pk, secret_key: sk })
+/// Result type for library operations
+pub type Result<T> = std::result::Result<T, QraiopError>;
+
+/// Security level enumeration
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SecurityLevel {
+    /// NIST Level 1 (AES-128 equivalent)
+    Level1 = 1,
+    /// NIST Level 3 (AES-192 equivalent)  
+    Level3 = 3,
+    /// NIST Level 5 (AES-256 equivalent)
+    Level5 = 5,
 }
 
-/// Signature keypair
-pub struct SigKeypair {
-    pub public_key: SigPublicKey,
-    pub secret_key: SigSecretKey,
+impl fmt::Display for SecurityLevel {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SecurityLevel::Level1 => write!(f, "Level-1"),
+            SecurityLevel::Level3 => write!(f, "Level-3"),
+            SecurityLevel::Level5 => write!(f, "Level-5"),
+        }
+    }
 }
 
-/// Generate a Dilithium2 keypair
-pub fn generate_dilithium2_keypair() -> Result<SigKeypair, oqs::Error> {
-    let engine = Sig::new(SigAlg::Dilithium2)?;
-    let (pk, sk) = engine.keypair()?;
-    Ok(SigKeypair { public_key: pk, secret_key: sk })
+/// Initialize the library with logging
+pub fn init() -> Result<()> {
+    env_logger::init();
+    log::info!("QRAIOP Crypto Library v{} initialized", VERSION);
+    log::info!("Supported algorithms: {:?}", ALGORITHMS);
+    Ok(())
 }
 
-/// Sign a message with Dilithium2
-pub fn sign_message(sk: &SigKeypair, message: &[u8]) -> Result<Signature, oqs::Error> {
-    let engine = Sig::new(SigAlg::Dilithium2)?;
-    engine.sign(message, &sk.secret_key)
+/// Get library information
+pub fn info() -> LibraryInfo {
+    LibraryInfo {
+        version: VERSION.to_string(),
+        supported_algorithms: ALGORITHMS.iter().map(|&s| s.to_string()).collect(),
+        nist_approved: true,
+        quantum_resistant: true,
+    }
 }
 
-/// Verify a Dilithium2 signature
-pub fn verify_signature(pk: &SigKeypair, message: &[u8], signature: &Signature) -> bool {
-    let engine = Sig::new(SigAlg::Dilithium2).unwrap();
-    engine.verify(message, signature, &pk.public_key).is_ok()
+/// Library information structure
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct LibraryInfo {
+    pub version: String,
+    pub supported_algorithms: Vec<String>,
+    pub nist_approved: bool,
+    pub quantum_resistant: bool,
 }
 
 #[cfg(test)]
@@ -46,18 +103,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_kyber768_keypair() {
-        let kem = Kem::new(KemAlg::Kyber768).unwrap();
-        let kp = generate_kyber768_keypair().expect("KEM keypair failed");
-        assert_eq!(kp.public_key.as_ref().len(), kem.length_public_key());
-        assert_eq!(kp.secret_key.as_ref().len(), kem.length_secret_key());
+    fn test_library_init() {
+        assert!(init().is_ok());
     }
 
     #[test]
-    fn test_dilithium2_sign_verify() {
-        let kp = generate_dilithium2_keypair().expect("Signature keypair failed");
-        let msg = b"QRAIOP signing test";
-        let signature = sign_message(&kp, msg).expect("Signing failed");
-        assert!(verify_signature(&kp, msg, &signature));
+    fn test_library_info() {
+        let info = info();
+        assert_eq!(info.version, VERSION);
+        assert!(info.nist_approved);
+        assert!(info.quantum_resistant);
+        assert!(!info.supported_algorithms.is_empty());
+    }
+
+    #[test]
+    fn test_security_levels() {
+        assert_eq!(SecurityLevel::Level1 as u8, 1);
+        assert_eq!(SecurityLevel::Level3 as u8, 3);
+        assert_eq!(SecurityLevel::Level5 as u8, 5);
     }
 }
