@@ -9,11 +9,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("Library version: {}", info().version);
 
     let (pk, sk) = MlKem512::keypair()?;
-    let (ct, ss1) = MlKem512::encapsulate(&pk)?;
-    let ss2 = MlKem512::decapsulate(&sk, &ct)?;
+    let (ct, _ss1) = MlKem512::encapsulate(&pk)?;
+    let _ss2 = MlKem512::decapsulate(&sk, &ct)?;
     
     println!("ML-KEM-512 roundtrip successful");
-    println!("Shared secret validation completed");
     
     Ok(())
 }
