@@ -21,7 +21,6 @@ impl KeyEncapsulation for MlKem512 {
     }
 
     fn encapsulate(public_key: &Self::PublicKey) -> Result<(Self::Ciphertext, Self::SharedSecret)> {
-        // Fix: encapsulate returns (SharedSecret, Ciphertext), we need (Ciphertext, SharedSecret)
         let (shared_secret, ciphertext) = encapsulate(public_key);
         Ok((ciphertext, shared_secret))
     }
@@ -45,7 +44,6 @@ mod tests {
         let ss2 = MlKem512::decapsulate(&sk, &ct).unwrap();
 
         // Compare shared secrets using constant-time comparison
-        use std::ptr;
         let ss1_ptr = &ss1 as *const SharedSecret as *const u8;
         let ss2_ptr = &ss2 as *const SharedSecret as *const u8;
         let len = std::mem::size_of::<SharedSecret>();
