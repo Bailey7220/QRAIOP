@@ -1,19 +1,15 @@
+// src/controllers/controllers/qraiop_controller.go
 package controllers
 
 import (
     "context"
-    "fmt"
     "time"
 
     "github.com/go-logr/logr"
-    appsv1 "k8s.io/api/apps/v1"
-    corev1 "k8s.io/api/core/v1"
     metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-    "k8s.io/apimachinery/pkg/api/resource"
     "k8s.io/apimachinery/pkg/runtime"
     ctrl "sigs.k8s.io/controller-runtime"
     "sigs.k8s.io/controller-runtime/pkg/client"
-    "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
     qraiopv1 "github.com/Bailey7220/QRAIOP/controllers/api/v1"
 )
