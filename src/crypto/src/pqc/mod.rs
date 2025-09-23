@@ -10,8 +10,9 @@ pub trait KeyEncapsulation {
     type SharedSecret;
 
     fn keypair() -> crate::Result<(Self::PublicKey, Self::SecretKey)>;
-    fn encapsulate(public_key: &Self::PublicKey)
-        -> crate::Result<(Self::Ciphertext, Self::SharedSecret)>;
+    fn encapsulate(
+        public_key: &Self::PublicKey,
+    ) -> crate::Result<(Self::Ciphertext, Self::SharedSecret)>;
     fn decapsulate(
         secret_key: &Self::SecretKey,
         ciphertext: &Self::Ciphertext,
