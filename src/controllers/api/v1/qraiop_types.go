@@ -6,16 +6,16 @@ import (
     "k8s.io/apimachinery/pkg/runtime"
 )
 
+// QraiopSpec defines the desired state of Qraiop
+type QraiopSpec struct {
+    // your spec fields
+}
+
 // ComponentStatus defines individual component status
 type ComponentStatus struct {
     Status      string      `json:"status"`
     Message     string      `json:"message,omitempty"`
     LastUpdated metav1.Time `json:"lastUpdated,omitempty"`
-}
-
-// QraiopSpec defines the desired state of Qraiop
-type QraiopSpec struct {
-    // Add your spec fields here
 }
 
 // QraiopStatus defines the observed state of Qraiop
