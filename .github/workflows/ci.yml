@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Test Rust Crypto Library
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     - name: Install Rust
       uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -65,7 +65,7 @@ jobs:
         python-version: ["3.9", "3.10", "3.11"]
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -108,7 +108,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Test Go Controllers
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     - name: Set up Go
       uses: actions/setup-go@v5
@@ -148,7 +148,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Security Scanning
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
@@ -172,7 +172,7 @@ jobs:
     
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
