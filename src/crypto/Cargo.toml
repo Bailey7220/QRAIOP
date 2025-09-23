@@ -19,7 +19,7 @@ crate-type = ["cdylib", "rlib"]
 oqs = "0.10"
 pqcrypto = "0.18.1"
 pqcrypto-kyber = "0.7.2"
-pqcrypto-dilithium = "0.5.2"
+pqcrypto-dilithium = "0.5.0"
 pqcrypto-sphincsplus = "0.7.2"
 rand = "0.8"
 serde = { version = "1.0", features = ["derive"] }
