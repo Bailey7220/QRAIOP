@@ -10,6 +10,7 @@ import (
     corev1 "k8s.io/api/core/v1"
     metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
     "k8s.io/apimachinery/pkg/api/resource"
+    "k8s.io/apimachinery/pkg/runtime"
     ctrl "sigs.k8s.io/controller-runtime"
     "sigs.k8s.io/controller-runtime/pkg/client"
     "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -23,7 +24,8 @@ type QraiopReconciler struct {
     Log    logr.Logger
 }
 
-// +kubebuilder:rbac ...
+// +kubebuilder:rbac:groups=qraiop.io,resources=qraiops,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=qraiop.io,resources=qraiops/status,verbs=get;update;patch
 func (r *QraiopReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
     log := r.Log.WithValues("qraiop", req.NamespacedName)
 
@@ -40,8 +42,7 @@ func (r *QraiopReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
         _ = r.Status().Update(ctx, &qraiop)
     }
 
-    // Reconcile logic...
-    // Example component update:
+    // Example component readiness update
     qraiop.Status.Components["cryptography"] = qraiopv1.ComponentStatus{
         Status:      "Ready",
         Message:     "OK",
