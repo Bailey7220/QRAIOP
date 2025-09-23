@@ -1,7 +1,7 @@
 //! QRAIOP Quantum-Safe Cryptography Demo
 
-use qraiop_crypto::pqc::kyber::{KeyEncapsulation, MlKem512};
-use qraiop_crypto::{init, info};
+use qraiop_crypto::{KeyEncapsulation, init, info};
+use qraiop_crypto::pqc::kyber::MlKem512;
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
