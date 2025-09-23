@@ -1,0 +1,174 @@
+# configs/k8s/monitoring.yml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: qraiop-system
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 30s
+      evaluation_interval: 30s
+    
+    rule_files:
+    - "/etc/prometheus/rules/*.yml"
+    
+    alerting:
+      alertmanagers:
+      - static_configs:
+        - targets: ["alertmanager:9093"]
+    
+    scrape_configs:
+    - job_name: 'qraiop-controller'
+      static_configs:
+      - targets: ['qraiop-controller-metrics:8080']
+      
+    - job_name: 'qraiop-crypto'
+      static_configs:
+      - targets: ['qraiop-crypto:8080']
+      
+    - job_name: 'qraiop-ai'
+      static_configs:
+      - targets: ['qraiop-ai:8080']
+      
+    - job_name: 'qraiop-chaos'
+      static_configs:
+      - targets: ['qraiop-chaos:8080']
+      
+    - job_name: 'kubernetes-pods'
+      kubernetes_sd_configs:
+      - role: pod
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules
+  namespace: qraiop-system
+data:
+  qraiop.yml: |
+    groups:
+    - name: qraiop
+      rules:
+      # Controller health
+      - alert: QraiopControllerDown
+        expr: up{job="qraiop-controller"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "QRAIOP Controller is down"
+          description: "QRAIOP Controller has been down for more than 5 minutes."
+      
+      # Crypto service health
+      - alert: CryptoServiceDown
+        expr: up{job="qraiop-crypto"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Crypto service is down"
+          description: "Quantum-safe crypto service is unavailable."
+      
+      # High chaos experiment failure rate
+      - alert: HighChaosFailureRate
+        expr: rate(chaos_experiments_failed_total[5m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High chaos experiment failure rate"
+          description: "Chaos experiments are failing at a high rate."
+      
+      # AI agent unresponsive
+      - alert: AIAgentUnresponsive
+        expr: time() - ai_agent_last_heartbeat > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AI Agent unresponsive"
+          description: "AI agent {{ $labels.agent_id }} has not responded in 5+ minutes."
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: qraiop-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.40.0
+        args:
+        - '--config.file=/etc/prometheus/prometheus.yml'
+        - '--storage.tsdb.path=/prometheus'
+        - '--web.console.libraries=/etc/prometheus/console_libraries'
+        - '--web.console.templates=/etc/prometheus/consoles'
+        - '--web.enable-lifecycle'
+        - '--storage.tsdb.retention.time=30d'
+        ports:
+        - containerPort: 9090
+        volumeMounts:
+        - name: prometheus-config
+          mountPath: /etc/prometheus
+        - name: prometheus-rules
+          mountPath: /etc/prometheus/rules
+        - name: prometheus-storage
+          mountPath: /prometheus
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+          requests:
+            cpu: 200m
+            memory: 512Mi
+      volumes:
+      - name: prometheus-config
+        configMap:
+          name: prometheus-config
+      - name: prometheus-rules
+        configMap:
+          name: prometheus-rules
+      - name: prometheus-storage
+        persistentVolumeClaim:
+          claimName: prometheus-storage
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-storage
+  namespace: qraiop-system
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: qraiop-system
+spec:
+  selector:
+    app: prometheus
+  ports:
+  - port: 9090
+    targetPort: 9090
