@@ -1,0 +1,119 @@
+# configs/k8s/controller-deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qraiop-controller
+  namespace: qraiop-system
+  labels:
+    app: qraiop-controller
+    component: controller
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: qraiop-controller
+  template:
+    metadata:
+      labels:
+        app: qraiop-controller
+        component: controller
+    spec:
+      serviceAccountName: qraiop-controller
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+      containers:
+      - name: controller
+        image: ghcr.io/bailey7220/qraiop-controller:latest
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/qraiop-controller"]
+        args:
+        - --metrics-bind-address=:8080
+        - --leader-elect=true
+        - --health-probe-bind-address=:8081
+        ports:
+        - name: metrics
+          containerPort: 8080
+          protocol: TCP
+        - name: health
+          containerPort: 8081
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: health
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: health
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        env:
+        - name: LOG_LEVEL
+          value: "info"
+        - name: ENABLE_PPROF
+          value: "false"
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: cache
+          mountPath: /.cache
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+
+---
+# Service for Controller Metrics
+apiVersion: v1
+kind: Service
+metadata:
+  name: qraiop-controller-metrics
+  namespace: qraiop-system
+  labels:
+    app: qraiop-controller
+    component: metrics
+spec:
+  selector:
+    app: qraiop-controller
+  ports:
+  - name: metrics
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+
+---
+# ServiceMonitor for Prometheus
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: qraiop-controller
+  namespace: qraiop-system
+  labels:
+    app: qraiop-controller
+spec:
+  selector:
+    matchLabels:
+      app: qraiop-controller
+      component: metrics
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
