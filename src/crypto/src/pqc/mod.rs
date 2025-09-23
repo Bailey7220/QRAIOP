@@ -2,6 +2,7 @@
 
 pub mod kyber;
 
+// Make the trait public so it can be used in main.rs
 pub trait KeyEncapsulation {
     type PublicKey;
     type SecretKey;
@@ -18,9 +19,9 @@ pub trait KeyEncapsulation {
 }
 
 pub trait DigitalSignature {
-    // ...
+    // Placeholder for future implementation
 }
 
 pub trait HashBasedSignature: DigitalSignature {
-    // ...
+    // Placeholder for future implementation
 }
