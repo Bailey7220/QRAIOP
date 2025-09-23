@@ -2,7 +2,7 @@
 # Chaos Engineering Framework
 chaostoolkit==1.17.0
 chaostoolkit-kubernetes==0.26.3
-chaostoolkit-prometheus==0.4.0
+chaostoolkit-prometheus==0.6.0
 
 # Kubernetes and cloud-native
 kubernetes==29.0.0
