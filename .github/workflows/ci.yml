@@ -123,7 +123,7 @@ jobs:
       run: cd src/controllers && test -z "$(gofmt -l .)"
     
     - name: Lint with golangci-lint
-      uses: golangci/golangci-lint-action@v4
+      uses: golangci/golangci-lint-action@v8
       with:
         working-directory: src/controllers
         version: latest
