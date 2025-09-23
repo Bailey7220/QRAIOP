@@ -3,7 +3,7 @@
 use crate::pqc::KeyEncapsulation;
 use crate::Result;
 
-// Concrete types - direct imports without unused trait aliases
+// Concrete types - direct imports
 use pqcrypto_kyber::kyber512::{keypair, encapsulate, decapsulate, PublicKey, SecretKey, Ciphertext, SharedSecret};
 
 pub struct MlKem512;
@@ -28,7 +28,6 @@ impl KeyEncapsulation for MlKem512 {
         secret_key: &Self::SecretKey,
         ciphertext: &Self::Ciphertext,
     ) -> Result<Self::SharedSecret> {
-        // Use the concrete types directly
         Ok(decapsulate(ciphertext, secret_key))
     }
 }
@@ -43,20 +42,16 @@ mod tests {
         let (ct, ss1) = MlKem512::encapsulate(&pk).unwrap();
         let ss2 = MlKem512::decapsulate(&sk, &ct).unwrap();
         
-        // Convert to bytes for comparison
-        let ss1_bytes = unsafe {
-            std::slice::from_raw_parts(
-                &ss1 as *const _ as *const u8,
-                std::mem::size_of::<SharedSecret>(),
-            )
-        };
-        let ss2_bytes = unsafe {
-            std::slice::from_raw_parts(
-                &ss2 as *const _ as *const u8,
-                std::mem::size_of::<SharedSecret>(),
-            )
+        // Compare shared secrets using constant-time comparison
+        use std::ptr;
+        let ss1_ptr = &ss1 as *const SharedSecret as *const u8;
+        let ss2_ptr = &ss2 as *const SharedSecret as *const u8;
+        let len = std::mem::size_of::<SharedSecret>();
+        
+        let equal = unsafe {
+            libc::memcmp(ss1_ptr as *const libc::c_void, ss2_ptr as *const libc::c_void, len) == 0
         };
         
-        assert_eq!(ss1_bytes, ss2_bytes);
+        assert!(equal, "Shared secrets should match");
     }
 }
