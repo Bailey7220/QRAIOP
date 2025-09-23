@@ -1,4 +1,4 @@
-# src/crypto/Cargo.toml
+# src/crypto/Cargo.toml (Updated with missing dependency)
 [package]
 name = "qraiop-crypto"
 version = "0.1.0"
@@ -7,6 +7,10 @@ authors = ["Bailey7220 <your-email@example.com>"]
 description = "Quantum-resistant cryptographic library for QRAIOP"
 license = "Apache-2.0"
 repository = "https://github.com/Bailey7220/QRAIOP"
+
+[[bin]]
+name = "crypto-demo"
+path = "src/main.rs"
 
 [lib]
 name = "qraiop_crypto"
@@ -22,14 +26,15 @@ rand = "0.8"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 hex = "0.4"
+subtle = "2.5"
 zeroize = { version = "1.7", features = ["zeroize_derive"] }
 thiserror = "1.0"
 log = "0.4"
 env_logger = "0.11"
-criterion = { version = "0.5", features = ["html_reports"] }
+bincode = "1.3"
 
 [dev-dependencies]
-criterion = "0.5"
+criterion = { version = "0.5", features = ["html_reports"] }
 tokio-test = "0.4"
 
 [[bench]]
