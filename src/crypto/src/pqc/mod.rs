@@ -8,7 +8,7 @@ pub mod kyber;
 pub mod dilithium;
 pub mod sphincs;
 
-use crate::{Result, QraiopError, SecurityLevel};
+use crate::{QraiopError, Result, SecurityLevel};
 use serde::{Deserialize, Serialize};
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
@@ -145,3 +145,4 @@ pub fn benchmark_signature<S: DigitalSignature>() -> Result<PerformanceMetrics> 
         ciphertext_size: 0, // Not applicable for signatures
     })
 }
+
