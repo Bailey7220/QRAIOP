@@ -3,22 +3,23 @@ package v1
 
 import (
     metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+    "k8s.io/apimachinery/pkg/runtime"
 )
 
 // QraiopSpec defines the desired state of Qraiop
 type QraiopSpec struct {
     // Quantum-safe cryptography configuration
     Cryptography CryptographyConfig `json:"cryptography,omitempty"`
-    
+
     // AI orchestration configuration
     AIOrchestration AIConfig `json:"aiOrchestration,omitempty"`
-    
+
     // Chaos engineering configuration
     ChaosEngineering ChaosConfig `json:"chaosEngineering,omitempty"`
-    
+
     // Monitoring configuration
     Monitoring MonitoringConfig `json:"monitoring,omitempty"`
-    
+
     // Security policies
     SecurityPolicies SecurityConfig `json:"securityPolicies,omitempty"`
 }
@@ -27,16 +28,16 @@ type QraiopSpec struct {
 type CryptographyConfig struct {
     // Enable post-quantum cryptography
     Enabled bool `json:"enabled"`
-    
+
     // Supported algorithms
     Algorithms []string `json:"algorithms,omitempty"`
-    
+
     // Security level (1, 3, or 5)
     SecurityLevel int `json:"securityLevel,omitempty"`
-    
+
     // Hybrid mode (classical + quantum-safe)
     HybridMode bool `json:"hybridMode,omitempty"`
-    
+
     // Certificate management
     CertificateManagement CertManagementConfig `json:"certificateManagement,omitempty"`
 }
@@ -45,10 +46,10 @@ type CryptographyConfig struct {
 type CertManagementConfig struct {
     // Enable automatic certificate rotation
     AutoRotation bool `json:"autoRotation,omitempty"`
-    
+
     // Rotation interval in hours
     RotationInterval int `json:"rotationInterval,omitempty"`
-    
+
     // Certificate authority
     CertificateAuthority string `json:"certificateAuthority,omitempty"`
 }
@@ -57,13 +58,13 @@ type CertManagementConfig struct {
 type AIConfig struct {
     // Enable AI orchestration
     Enabled bool `json:"enabled"`
-    
+
     // LLM provider (openai, anthropic, local)
     LLMProvider string `json:"llmProvider,omitempty"`
-    
+
     // Model configuration
     ModelConfig ModelConfig `json:"modelConfig,omitempty"`
-    
+
     // Agent configuration
     Agents []AgentConfig `json:"agents,omitempty"`
 }
@@ -72,10 +73,10 @@ type AIConfig struct {
 type ModelConfig struct {
     // Model name
     Model string `json:"model,omitempty"`
-    
+
     // Temperature for model responses
     Temperature float32 `json:"temperature,omitempty"`
-    
+
     // Maximum tokens
     MaxTokens int `json:"maxTokens,omitempty"`
 }
@@ -84,10 +85,10 @@ type ModelConfig struct {
 type AgentConfig struct {
     // Agent type (supervisor, security, infrastructure, monitoring, chaos)
     Type string `json:"type"`
-    
+
     // Enable the agent
     Enabled bool `json:"enabled"`
-    
+
     // Agent-specific configuration
     Config map[string]string `json:"config,omitempty"`
 }
@@ -96,10 +97,10 @@ type AgentConfig struct {
 type ChaosConfig struct {
     // Enable chaos engineering
     Enabled bool `json:"enabled"`
-    
+
     // Experiment schedules
     Schedules []ChaosSchedule `json:"schedules,omitempty"`
-    
+
     // Safety configuration
     Safety ChaosSafetyConfig `json:"safety,omitempty"`
 }
@@ -108,10 +109,10 @@ type ChaosConfig struct {
 type ChaosSchedule struct {
     // Schedule name
     Name string `json:"name"`
-    
+
     // Cron schedule
     Schedule string `json:"schedule"`
-    
+
     // Experiment configuration
     ExperimentConfig map[string]interface{} `json:"experimentConfig"`
 }
@@ -120,10 +121,10 @@ type ChaosSchedule struct {
 type ChaosSafetyConfig struct {
     // Maximum concurrent experiments
     MaxConcurrentExperiments int `json:"maxConcurrentExperiments,omitempty"`
-    
+
     // Excluded namespaces
     ExcludedNamespaces []string `json:"excludedNamespaces,omitempty"`
-    
+
     // Business hours only
     BusinessHoursOnly bool `json:"businessHoursOnly,omitempty"`
 }
@@ -132,13 +133,13 @@ type ChaosSafetyConfig struct {
 type MonitoringConfig struct {
     // Enable monitoring
     Enabled bool `json:"enabled"`
-    
+
     // Prometheus configuration
     Prometheus PrometheusConfig `json:"prometheus,omitempty"`
-    
+
     // Grafana configuration
     Grafana GrafanaConfig `json:"grafana,omitempty"`
-    
+
     // Alerting configuration
     Alerting AlertingConfig `json:"alerting,omitempty"`
 }
@@ -147,10 +148,10 @@ type MonitoringConfig struct {
 type PrometheusConfig struct {
     // Enable Prometheus
     Enabled bool `json:"enabled"`
-    
+
     // Scrape interval
     ScrapeInterval string `json:"scrapeInterval,omitempty"`
-    
+
     // Retention period
     Retention string `json:"retention,omitempty"`
 }
@@ -159,7 +160,7 @@ type PrometheusConfig struct {
 type GrafanaConfig struct {
     // Enable Grafana
     Enabled bool `json:"enabled"`
-    
+
     // Dashboard provisioning
     DashboardProvisioning bool `json:"dashboardProvisioning,omitempty"`
 }
@@ -168,7 +169,7 @@ type GrafanaConfig struct {
 type AlertingConfig struct {
     // Enable alerting
     Enabled bool `json:"enabled"`
-    
+
     // Alert channels
     Channels []AlertChannel `json:"channels,omitempty"`
 }
@@ -177,7 +178,7 @@ type AlertingConfig struct {
 type AlertChannel struct {
     // Channel type (slack, email, webhook)
     Type string `json:"type"`
-    
+
     // Channel configuration
     Config map[string]string `json:"config"`
 }
@@ -186,10 +187,10 @@ type AlertChannel struct {
 type SecurityConfig struct {
     // Network policies
     NetworkPolicies NetworkPolicyConfig `json:"networkPolicies,omitempty"`
-    
+
     // Pod security standards
     PodSecurityStandards PodSecurityConfig `json:"podSecurityStandards,omitempty"`
-    
+
     // RBAC configuration
     RBAC RBACConfig `json:"rbac,omitempty"`
 }
@@ -198,7 +199,7 @@ type SecurityConfig struct {
 type NetworkPolicyConfig struct {
     // Enable default deny-all policy
     DefaultDenyAll bool `json:"defaultDenyAll,omitempty"`
-    
+
     // Allow QRAIOP components communication
     AllowQraiopCommunication bool `json:"allowQraiopCommunication,omitempty"`
 }
@@ -207,7 +208,7 @@ type NetworkPolicyConfig struct {
 type PodSecurityConfig struct {
     // Security level (privileged, baseline, restricted)
     Level string `json:"level,omitempty"`
-    
+
     // Enforce security standards
     Enforce bool `json:"enforce,omitempty"`
 }
@@ -216,7 +217,7 @@ type PodSecurityConfig struct {
 type RBACConfig struct {
     // Enable RBAC
     Enabled bool `json:"enabled"`
-    
+
     // Service account configuration
     ServiceAccounts []ServiceAccountConfig `json:"serviceAccounts,omitempty"`
 }
@@ -225,13 +226,13 @@ type RBACConfig struct {
 type ServiceAccountConfig struct {
     // Service account name
     Name string `json:"name"`
-    
+
     // Namespace
     Namespace string `json:"namespace"`
-    
+
     // Roles
     Roles []string `json:"roles,omitempty"`
-    
+
     // Cluster roles
     ClusterRoles []string `json:"clusterRoles,omitempty"`
 }
@@ -240,16 +241,16 @@ type ServiceAccountConfig struct {
 type QraiopStatus struct {
     // Overall status
     Phase string `json:"phase,omitempty"`
-    
+
     // Status message
     Message string `json:"message,omitempty"`
-    
+
     // Component statuses
     Components map[string]ComponentStatus `json:"components,omitempty"`
-    
+
     // Last update timestamp
     LastUpdated metav1.Time `json:"lastUpdated,omitempty"`
-    
+
     // Conditions
     Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
@@ -258,10 +259,10 @@ type QraiopStatus struct {
 type ComponentStatus struct {
     // Component status (Ready, NotReady, Error)
     Status string `json:"status"`
-    
+
     // Status message
     Message string `json:"message,omitempty"`
-    
+
     // Last update timestamp
     LastUpdated metav1.Time `json:"lastUpdated,omitempty"`
 }
@@ -288,6 +289,22 @@ type QraiopList struct {
     metav1.TypeMeta `json:",inline"`
     metav1.ListMeta `json:"metadata,omitempty"`
     Items           []Qraiop `json:"items"`
+}
+
+// DeepCopyObject implements runtime.Object for Qraiop
+func (in *Qraiop) DeepCopyObject() runtime.Object {
+    if c := in.DeepCopy(); c != nil {
+        return c
+    }
+    return nil
+}
+
+// DeepCopyObject implements runtime.Object for QraiopList
+func (in *QraiopList) DeepCopyObject() runtime.Object {
+    if c := in.DeepCopy(); c != nil {
+        return c
+    }
+    return nil
 }
 
 func init() {
