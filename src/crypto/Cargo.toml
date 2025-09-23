@@ -1,25 +1,44 @@
+# src/crypto/Cargo.toml
 [package]
 name = "qraiop-crypto"
 version = "0.1.0"
 edition = "2021"
-authors = ["Bailey Richardson <bailey@qraiop.io>"]
-description = "Quantum-resilient cryptography library for QRAIOP"
-license = "MIT"
+authors = ["Bailey7220 <your-email@example.com>"]
+description = "Quantum-resistant cryptographic library for QRAIOP"
+license = "Apache-2.0"
+repository = "https://github.com/Bailey7220/QRAIOP"
+
+[lib]
+name = "qraiop_crypto"
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+oqs = "0.10"
+pqcrypto = "0.20"
+pqcrypto-kyber = "0.8"
+pqcrypto-dilithium = "0.5"
+pqcrypto-sphincsplus = "0.8"
+rand = "0.8"
 serde = { version = "1.0", features = ["derive"] }
-tokio = { version = "1.0", features = ["full"] }
-tracing = "0.1"
-tracing-subscriber = "0.3"
-oqs = "0.9"
+serde_json = "1.0"
+hex = "0.4"
+zeroize = { version = "1.7", features = ["zeroize_derive"] }
+thiserror = "1.0"
+log = "0.4"
+env_logger = "0.11"
+criterion = { version = "0.5", features = ["html_reports"] }
 
 [dev-dependencies]
+criterion = "0.5"
 tokio-test = "0.4"
 
-[features]
-default = ["quantum-safe"]
-quantum-safe = []
+[[bench]]
+name = "crypto_benchmarks"
+harness = false
 
-[[bin]]
-name = "qraiop-crypto-demo"
-path = "src/main.rs"
+[features]
+default = ["ml-kem", "ml-dsa", "slh-dsa"]
+ml-kem = []
+ml-dsa = []
+slh-dsa = []
+hybrid = []
