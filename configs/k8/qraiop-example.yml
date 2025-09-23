@@ -1,0 +1,112 @@
+# configs/k8s/qraiop-example.yml
+apiVersion: qraiop.io/v1
+kind: Qraiop
+metadata:
+  name: production-cluster
+  namespace: qraiop-system
+spec:
+  # Quantum-safe cryptography configuration
+  cryptography:
+    enabled: true
+    algorithms:
+    - "ML-KEM-768"
+    - "ML-DSA-65"
+    - "SLH-DSA-128s"
+    securityLevel: 3
+    hybridMode: true
+    certificateManagement:
+      autoRotation: true
+      rotationInterval: 168  # 7 days
+      certificateAuthority: "qraiop-ca"
+  
+  # AI orchestration configuration
+  aiOrchestration:
+    enabled: true
+    llmProvider: "openai"
+    modelConfig:
+      model: "gpt-4"
+      temperature: 0.1
+      maxTokens: 4000
+    agents:
+    - type: "supervisor"
+      enabled: true
+      config:
+        log_level: "info"
+    - type: "security"
+      enabled: true
+      config:
+        scan_interval: "300"
+    - type: "infrastructure"
+      enabled: true
+      config:
+        auto_scale: "true"
+    - type: "monitoring"
+      enabled: true
+      config:
+        metrics_interval: "30"
+    - type: "chaos"
+      enabled: true
+      config:
+        safety_mode: "true"
+  
+  # Chaos engineering configuration
+  chaosEngineering:
+    enabled: true
+    schedules:
+    - name: "weekly-resilience-test"
+      schedule: "0 2 * * 1"  # Every Monday at 2 AM
+      experimentConfig:
+        type: "pod_kill"
+        target:
+          namespace: "production"
+          selector:
+            app: "web"
+        percentage: 25
+        duration: 300
+    safety:
+      maxConcurrentExperiments: 2
+      excludedNamespaces:
+      - "kube-system"
+      - "qraiop-system"
+      businessHoursOnly: false
+  
+  # Monitoring configuration
+  monitoring:
+    enabled: true
+    prometheus:
+      enabled: true
+      scrapeInterval: "30s"
+      retention: "30d"
+    grafana:
+      enabled: true
+      dashboardProvisioning: true
+    alerting:
+      enabled: true
+      channels:
+      - type: "slack"
+        config:
+          webhook_url: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+          channel: "#alerts"
+      - type: "email"
+        config:
+          smtp_host: "smtp.company.com"
+          from: "qraiop@company.com"
+          to: "ops-team@company.com"
+  
+  # Security policies
+  securityPolicies:
+    networkPolicies:
+      defaultDenyAll: true
+      allowQraiopCommunication: true
+    podSecurityStandards:
+      level: "restricted"
+      enforce: true
+    rbac:
+      enabled: true
+      serviceAccounts:
+      - name: "qraiop-crypto"
+        namespace: "qraiop-system"
+        roles: ["qraiop-crypto-role"]
+      - name: "qraiop-ai"
+        namespace: "qraiop-system"
+        roles: ["qraiop-ai-role"]
