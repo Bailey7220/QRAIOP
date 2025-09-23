@@ -1,43 +1,48 @@
-#!/usr/bin/env python3
+# src/chaos/chaos_engine.py
 """
-QRAIOP Intelligent Chaos Engineering Module
-Simulates failure injection and validates self-healing.
+QRAIOP Chaos Engineering Engine
+
+Intelligent chaos engineering platform that automatically discovers,
+tests, and validates system resilience through controlled failure injection.
 """
 
-import time
-import random
+import asyncio
+import json
 import logging
+import time
+import uuid
+from datetime import datetime, timedelta
+from typing import Dict, Any, List, Optional, Callable
+from dataclasses import dataclass, field, asdict
+from enum import Enum
+import yaml
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+from kubernetes import client, config
+from prometheus_client.parser import text_string_to_metric_families
+import requests
+import psutil
 
-def inject_pod_failure():
-    pod = f"qraiop-worker-pod-{random.randint(100,999)}"
-    logging.info(f"Injecting failure into pod: {pod}")
-    time.sleep(2)
-    logging.info(f"Pod {pod} failed (simulated).")
+class ExperimentStatus(Enum):
+    """Chaos experiment status"""
+    PENDING = "pending"
+    RUNNING = "running"  
+    COMPLETED = "completed"
+    FAILED = "failed"
+    ABORTED = "aborted"
 
-def inject_network_partition():
-    split = random.choice([50, 75, 90])
-    logging.info(f"Creating network partition: {split}% of nodes isolated")
-    time.sleep(3)
-    logging.info("Network partition resolved.")
+class FailureType(Enum):
+    """Types of failures to inject"""
+    POD_KILL = "pod_kill"
+    NETWORK_DELAY = "network_delay"
+    NETWORK_PARTITION = "network_partition"
+    CPU_STRESS = "cpu_stress"
+    MEMORY_STRESS = "memory_stress"
+    DISK_FILL = "disk_fill"
+    DNS_CHAOS = "dns_chaos"
+    SERVICE_MESH_FAULT = "service_mesh_fault"
 
-def simulate_chaos_cycle():
-    experiments = [inject_pod_failure, inject_network_partition]
-    func = random.choice(experiments)
-    func()
-    logging.info("Validating self-healing...")
-    time.sleep(2)
-    success = random.random() < 0.98
-    if success:
-        logging.info("✅ Self-healing succeeded.")
-    else:
-        logging.error("❌ Self-healing failed.")
-
-if __name__ == '__main__':
-    logging.info("🌪️ Starting QRAIOP Chaos Engineering Simulation")
-    for _ in range(3):
-        simulate_chaos_cycle()
-        time.sleep(1)
-    logging.info("🎉 Chaos simulation complete")
+@dataclass
+class ExperimentTarget:
+    """Target for chaos experiment"""
+    namespace: str
+    selector
