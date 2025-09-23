@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  qraiop-controller:
+    build: .
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    environment:
+      - LOG_LEVEL=info
+      - CRYPTO_MODE=hybrid
+    volumes:
+      - ./configs:/app/configs:ro
+    networks:
+      - qraiop-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - qraiop-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    networks:
+      - qraiop-network
+
+networks:
+  qraiop-network:
+    driver: bridge
+
+volumes:
+  grafana-storage:
