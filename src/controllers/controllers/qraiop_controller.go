@@ -12,6 +12,7 @@ import (
     rbacv1 "k8s.io/api/rbac/v1"
     networkingv1 "k8s.io/api/networking/v1"
     metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+    "k8s.io/apimachinery/pkg/api/resource"  // ADD THIS MISSING IMPORT
     "k8s.io/apimachinery/pkg/runtime"
     "k8s.io/apimachinery/pkg/util/intstr"
     ctrl "sigs.k8s.io/controller-runtime"
@@ -397,11 +398,11 @@ func (r *QraiopReconciler) reconcileSecurityPolicies(ctx context.Context, qraiop
 func (r *QraiopReconciler) createOrUpdateDeployment(ctx context.Context, deployment *appsv1.Deployment) error {
     found := &appsv1.Deployment{}
     err := r.Get(ctx, client.ObjectKeyFromObject(deployment), found)
-    
+
     if err != nil && client.IgnoreNotFound(err) != nil {
         return err
     }
-    
+
     if err != nil {
         // Create deployment
         return r.Create(ctx, deployment)
@@ -415,11 +416,11 @@ func (r *QraiopReconciler) createOrUpdateDeployment(ctx context.Context, deploym
 func (r *QraiopReconciler) createOrUpdateService(ctx context.Context, service *corev1.Service) error {
     found := &corev1.Service{}
     err := r.Get(ctx, client.ObjectKeyFromObject(service), found)
-    
+
     if err != nil && client.IgnoreNotFound(err) != nil {
         return err
     }
-    
+
     if err != nil {
         return r.Create(ctx, service)
     } else {
@@ -432,11 +433,11 @@ func (r *QraiopReconciler) createOrUpdateService(ctx context.Context, service *c
 func (r *QraiopReconciler) createOrUpdateNetworkPolicy(ctx context.Context, np *networkingv1.NetworkPolicy) error {
     found := &networkingv1.NetworkPolicy{}
     err := r.Get(ctx, client.ObjectKeyFromObject(np), found)
-    
+
     if err != nil && client.IgnoreNotFound(err) != nil {
         return err
     }
-    
+
     if err != nil {
         return r.Create(ctx, np)
     } else {
@@ -449,7 +450,7 @@ func (r *QraiopReconciler) setComponentStatus(qraiop *qraiopv1.Qraiop, component
     if qraiop.Status.Components == nil {
         qraiop.Status.Components = make(map[string]qraiopv1.ComponentStatus)
     }
-    
+
     qraiop.Status.Components[component] = qraiopv1.ComponentStatus{
         Status:      status,
         Message:     message,
