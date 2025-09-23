@@ -14,7 +14,7 @@ type ComponentStatus struct {
 
 // QraiopSpec defines the desired state of Qraiop
 type QraiopSpec struct {
-    // ... your existing spec fields ...
+    // Add your spec fields here
 }
 
 // QraiopStatus defines the observed state of Qraiop
