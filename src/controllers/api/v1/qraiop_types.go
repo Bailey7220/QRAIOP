@@ -1,3 +1,4 @@
+// src/controllers/api/v1/qraiop_types.go
 package v1
 
 import (
@@ -43,6 +44,7 @@ type QraiopList struct {
     Items           []Qraiop `json:"items"`
 }
 
+// DeepCopyObject implements runtime.Object for Qraiop
 func (in *Qraiop) DeepCopyObject() runtime.Object {
     if c := in.DeepCopy(); c != nil {
         return c
@@ -50,6 +52,7 @@ func (in *Qraiop) DeepCopyObject() runtime.Object {
     return nil
 }
 
+// DeepCopyObject implements runtime.Object for QraiopList
 func (in *QraiopList) DeepCopyObject() runtime.Object {
     if c := in.DeepCopy(); c != nil {
         return c
