@@ -4,10 +4,10 @@
 //! Based on CRYSTALS-Kyber, standardized as FIPS 203.
 
 use crate::pqc::KeyEncapsulation;
-use crate::{Result, QraiopError, SecurityLevel};
+use crate::{QraiopError, Result, SecurityLevel};
+use pqcrypto_kyber::*;
 use serde::{Deserialize, Serialize};
 use zeroize::{Zeroize, ZeroizeOnDrop};
-use pqcrypto_kyber::*;
 
 /// ML-KEM-512 implementation (Security Level 1)
 pub struct MlKem512;
@@ -239,3 +239,4 @@ mod tests {
         assert_eq!(MlKem1024::algorithm_name(), "ML-KEM-1024");
     }
 }
+
