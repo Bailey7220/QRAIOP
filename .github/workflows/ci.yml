@@ -1,4 +1,5 @@
 # .github/workflows/ci.yml
+
 name: CI Pipeline
 
 on:
@@ -14,7 +15,6 @@ env:
 permissions:
   contents: read
   security-events: write
-  actions: read
   packages: write
 
 jobs:
@@ -22,183 +22,148 @@ jobs:
     runs-on: ubuntu-latest
     name: Test Rust Crypto Library
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install Rust
-      uses: actions-rust-lang/setup-rust-toolchain@v1
-      with:
-        components: rustfmt, clippy
-    
-    - name: Cache Rust dependencies
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          src/crypto/target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-    
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libssl-dev pkg-config
-    
-    - name: Format check
-      run: cd src/crypto && cargo fmt -- --check
-    
-    - name: Lint with Clippy
-      run: cd src/crypto && cargo clippy -- -D warnings
-    
-    - name: Run tests
-      run: cd src/crypto && cargo test --verbose
-    
-    - name: Security audit
-      run: |
-        cargo install cargo-audit
-        cd src/crypto && cargo audit
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('src/crypto/Cargo.lock') }}
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libssl-dev pkg-config
+
+      - name: Run rustfmt (format code in place)
+        working-directory: src/crypto
+        run: cargo fmt
+
+      - name: Check formatting
+        working-directory: src/crypto
+        run: cargo fmt -- --check
+
+      - name: Lint with Clippy
+        working-directory: src/crypto
+        run: cargo clippy -- -D warnings
+
+      - name: Run tests
+        working-directory: src/crypto
+        run: cargo test --verbose
+
+      - name: Security audit
+        working-directory: src/crypto
+        run: |
+          cargo install cargo-audit
+          cargo audit
 
   test-python:
     runs-on: ubuntu-latest
     name: Test Python Components
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
-    
+        python-version: [ "3.9", "3.10", "3.11" ]
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Cache Python dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f src/agents/requirements.txt ]; then pip install -r src/agents/requirements.txt; fi
-        if [ -f src/chaos/requirements.txt ]; then pip install -r src/chaos/requirements.txt; fi
-        pip install pytest pytest-cov flake8 black mypy safety bandit
-    
-    - name: Lint with flake8
-      run: |
-        # Stop on syntax errors or undefined names
-        flake8 src/agents src/chaos --count --select=E9,F63,F7,F82 --show-source --statistics
-        # Treat all other issues as warnings
-        flake8 src/agents src/chaos --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    
-    - name: Format check with black
-      run: black --check src/agents src/chaos || true
-    
-    - name: Type check with mypy
-      run: mypy src/agents src/chaos --ignore-missing-imports || true
-    
-    - name: Security check with bandit
-      run: bandit -r src/agents src/chaos -f json -o bandit-report.json || true
-    
-    - name: Safety check
-      run: safety check || true
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f src/agents/requirements.txt ]; then pip install -r src/agents/requirements.txt; fi
+          if [ -f src/chaos/requirements.txt ]; then pip install -r src/chaos/requirements.txt; fi
+          pip install pytest pytest-cov flake8 black mypy safety bandit
+
+      - name: Lint with flake8
+        run: |
+          flake8 src/agents src/chaos --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 src/agents src/chaos --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Format check with black
+        run: black --check src/agents src/chaos || true
+
+      - name: Type check with mypy
+        run: mypy src/agents src/chaos --ignore-missing-imports || true
+
+      - name: Security check with bandit
+        run: bandit -r src/agents src/chaos -f json -o bandit-report.json || true
+
+      - name: Safety check
+        run: safety check || true
 
   test-go:
     runs-on: ubuntu-latest
     name: Test Go Controllers
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.21'
-        cache-dependency-path: src/controllers/go.sum
-    
-    - name: Install dependencies
-      run: cd src/controllers && go mod tidy
-    
-    - name: Format check
-      run: cd src/controllers && test -z "$(gofmt -l .)"
-    
-    - name: Lint with golangci-lint
-      uses: golangci/golangci-lint-action@v4
-      with:
-        working-directory: src/controllers
-        version: latest
-    
-    - name: Run tests
-      run: cd src/controllers && go test -v ./...
-    
-    - name: Security scan with gosec
-      uses: securecodewarrior/github-action-gosec@v1
-      with:
-        args: '-fmt sarif -out gosec-results.sarif ./src/controllers/...'
-      continue-on-error: true
-    
-    - name: Upload gosec scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: 'gosec-results.sarif'
-      continue-on-error: true
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache-dependency-path: src/controllers/go.sum
+
+      - name: Install dependencies
+        run: cd src/controllers && go mod tidy
+
+      - name: Format check
+        run: cd src/controllers && test -z "$(gofmt -l .)"
+
+      - name: Lint with golangci-lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          working-directory: src/controllers
+          version: latest
+
+      - name: Run tests
+        run: cd src/controllers && go test -v ./...
+
+      - name: Security scan with gosec
+        uses: securecodewarrior/github-action-gosec@v1
+        with:
+          args: '-fmt sarif -out gosec-results.sarif ./src/controllers/...'
+        continue-on-error: true
+
+      - name: Upload gosec scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'gosec-results.sarif'
+        continue-on-error: true
 
   security-scan:
     runs-on: ubuntu-latest
     name: Security Scanning
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-    
-    - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
-      continue-on-error: true
+      - uses: actions/checkout@v4
 
-  build-and-test:
-    runs-on: ubuntu-latest
-    needs: [test-crypto, test-python, test-go]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-    
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    
-    - name: Log in to Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Extract metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix=sha-
-          type=raw,value=latest,enable={{is_default_branch}}
-    
-    - name: Build Docker image (no push for now)
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        push: false
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+        continue-on-error: true
