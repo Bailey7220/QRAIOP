@@ -33,7 +33,7 @@ jobs:
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
-          continue-on-error: true
+        continue-on-error: true
 
       - name: Run CodeQL Analysis
         uses: github/codeql-action/init@v3
@@ -45,3 +45,4 @@ jobs:
         
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+
