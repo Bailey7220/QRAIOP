@@ -22,19 +22,29 @@ impl KeyEncapsulation for MlKem512 {
     }
 
     fn encapsulate(public_key: &Self::PublicKey) -> Result<(Self::Ciphertext, Self::SharedSecret)> {
-        let pk = PKTrait::from_bytes(public_key.as_bytes())
-            .map_err(|e| QraiopError::InvalidKey(e.to_string()))?;
-        Ok(encapsulate(&pk))
+        // Use the concrete type directly instead of trait conversion
+        Ok(encapsulate(public_key))
     }
 
     fn decapsulate(
         secret_key: &Self::SecretKey,
         ciphertext: &Self::Ciphertext,
     ) -> Result<Self::SharedSecret> {
-        let sk = SKTrait::from_bytes(secret_key.as_bytes())
-            .map_err(|e| QraiopError::InvalidKey(e.to_string()))?;
-        let ct = CiphTrait::from_bytes(ciphertext.as_bytes())
-            .map_err(|e| QraiopError::EncapsulationFailed(e.to_string()))?;
-        Ok(decapsulate(&ct, &sk))
+        // Use the concrete types directly
+        Ok(decapsulate(ciphertext, secret_key))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ml_kem_512_roundtrip() {
+        let (pk, sk) = MlKem512::keypair().unwrap();
+        let (ct, ss1) = MlKem512::encapsulate(&pk).unwrap();
+        let ss2 = MlKem512::decapsulate(&sk, &ct).unwrap();
+        // Note: Direct equality comparison might not work, use secure comparison in production
+        assert_eq!(ss1.as_bytes(), ss2.as_bytes());
     }
 }
