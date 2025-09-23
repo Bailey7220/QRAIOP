@@ -30,35 +30,26 @@ pub const ALGORITHMS: &[&str] = &[
     "SLH-DSA-256s",
 ];
 
-/// Main error type for the library
 #[derive(Debug, thiserror::Error)]
 pub enum QraiopError {
     #[error("Cryptographic operation failed: {0}")]
     CryptoError(String),
-
     #[error("Invalid key format: {0}")]
     InvalidKey(String),
-
     #[error("Algorithm not supported: {0}")]
     UnsupportedAlgorithm(String),
-
     #[error("Signature verification failed")]
     SignatureVerificationFailed,
-
     #[error("Key encapsulation failed: {0}")]
     EncapsulationFailed(String),
-
     #[error("Serialization error: {0}")]
     SerializationError(String),
-
     #[error("IO error: {0}")]
     IoError(#[from] std::io::Error),
 }
 
-/// Result type for library operations
 pub type Result<T> = std::result::Result<T, QraiopError>;
 
-/// Security level enumeration
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SecurityLevel {
     Level1 = 1,
@@ -76,7 +67,6 @@ impl fmt::Display for SecurityLevel {
     }
 }
 
-/// Initialize the library with logging
 pub fn init() -> Result<()> {
     env_logger::init();
     log::info!("QRAIOP Crypto Library v{} initialized", VERSION);
@@ -84,7 +74,6 @@ pub fn init() -> Result<()> {
     Ok(())
 }
 
-/// Get library information
 pub fn info() -> LibraryInfo {
     LibraryInfo {
         version: VERSION.to_string(),
@@ -94,7 +83,6 @@ pub fn info() -> LibraryInfo {
     }
 }
 
-/// Library information structure
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct LibraryInfo {
     pub version: String,
