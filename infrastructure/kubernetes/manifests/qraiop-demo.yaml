@@ -1,0 +1,38 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: qraiop-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qraiop-controller
+  namespace: qraiop-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qraiop-controller
+  template:
+    metadata:
+      labels:
+        app: qraiop-controller
+    spec:
+      containers:
+        - name: controller
+          image: busybox
+          command: ["sleep", "3600"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: controller-svc
+  namespace: qraiop-system
+spec:
+  selector:
+    app: qraiop-controller
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80

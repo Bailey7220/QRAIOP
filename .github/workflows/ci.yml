@@ -1,0 +1,81 @@
+name: QRAIOP CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  sanity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify project structure
+        run: |
+          echo "src/crypto exists: " && [ -d src/crypto ]
+          echo "src/agents exists: " && [ -d src/agents ]
+          echo "README.md exists: " && [ -f README.md ]
+  python-agent:
+    name: 🐍 Python AI Agent Tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - name: Run AI agent tests
+      run: |
+        python src/agents/ai_agent.py
+    - name: Install test deps
+      run: pip install pytest
+    - name: Run agent tests
+      run: pytest src/agents/tests --maxfail=1 --disable-warnings -q
+
+        
+  chaos-engine:
+    name: 🌪️ Chaos Engineering Simulation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Run chaos engine script
+        run: |
+          python src/chaos/chaos_engine.py
+  go-controller:
+    name: 🐹 Go Controller Demo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+      - name: Run Go controller demo
+        run: go run src/controllers/main.go
+  yamllint:
+    name: 🧩 YAML Syntax Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install yamllint
+        run: pip install yamllint
+      - name: Lint all YAML files
+        run: yamllint infrastructure/kubernetes/manifests/*.yaml
+  rust-crypto:
+    name: 🦀 Rust Crypto Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test Rust crypto module
+        run: |
+          cd src/crypto
+          cargo test --quiet
