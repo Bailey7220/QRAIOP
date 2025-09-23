@@ -154,7 +154,7 @@ jobs:
         if: always()
         with:
           sarif_file: 'src/controllers/gosec-results.sarif'
-          continue-on-error: true
+        continue-on-error: true
 
   security-scan:
     runs-on: ubuntu-latest
@@ -175,4 +175,4 @@ jobs:
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
-          continue-on-error: true
+        continue-on-error: true
