@@ -1,7 +1,6 @@
-// src/crypto/src/utils.rs
 //! Utility functions for QRAIOP cryptography
 
-use crate::{Result, QraiopError};
+use crate::{QraiopError, Result};
 use std::fmt;
 
 /// Convert bytes to hexadecimal string
@@ -43,7 +42,7 @@ impl BenchmarkTimer {
             start: std::time::Instant::now(),
         }
     }
-    
+
     pub fn elapsed_ms(&self) -> f64 {
         self.start.elapsed().as_secs_f64() * 1000.0
     }
@@ -55,7 +54,7 @@ impl Default for BenchmarkTimer {
     }
 }
 
-/// Key size helpers
+/// Key size constants
 pub mod key_sizes {
     /// ML-KEM-512 key sizes
     pub mod ml_kem_512 {
@@ -64,7 +63,7 @@ pub mod key_sizes {
         pub const CIPHERTEXT_SIZE: usize = 768;
         pub const SHARED_SECRET_SIZE: usize = 32;
     }
-    
+
     /// ML-KEM-768 key sizes
     pub mod ml_kem_768 {
         pub const PUBLIC_KEY_SIZE: usize = 1184;
@@ -72,7 +71,7 @@ pub mod key_sizes {
         pub const CIPHERTEXT_SIZE: usize = 1088;
         pub const SHARED_SECRET_SIZE: usize = 32;
     }
-    
+
     /// ML-KEM-1024 key sizes
     pub mod ml_kem_1024 {
         pub const PUBLIC_KEY_SIZE: usize = 1568;
@@ -91,11 +90,11 @@ mod tests {
         let data = vec![0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef];
         let hex = bytes_to_hex(&data);
         assert_eq!(hex, "0123456789abcdef");
-        
+
         let decoded = hex_to_bytes(&hex).unwrap();
         assert_eq!(decoded, data);
     }
-    
+
     #[test]
     fn test_secure_random() {
         let data1 = secure_random(32);
@@ -104,18 +103,18 @@ mod tests {
         assert_eq!(data2.len(), 32);
         assert_ne!(data1, data2); // Should be different
     }
-    
+
     #[test]
     fn test_constant_time_eq() {
         let a = vec![1, 2, 3, 4];
         let b = vec![1, 2, 3, 4];
         let c = vec![1, 2, 3, 5];
-        
+
         assert!(constant_time_eq(&a, &b));
         assert!(!constant_time_eq(&a, &c));
         assert!(!constant_time_eq(&a, &[1, 2, 3])); // Different lengths
     }
-    
+
     #[test]
     fn test_benchmark_timer() {
         let timer = BenchmarkTimer::new();
