@@ -1,0 +1,100 @@
+# configs/k8s/namespace.yml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: qraiop-system
+  labels:
+    name: qraiop-system
+    security.quantum-safe: "true"
+
+---
+# Service Account for QRAIOP Controller
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: qraiop-controller
+  namespace: qraiop-system
+
+---
+# ClusterRole for QRAIOP Controller
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: qraiop-controller-role
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps", "secrets", "serviceaccounts"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["networkpolicies"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["qraiop.io"]
+  resources: ["qraiops"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["qraiop.io"]
+  resources: ["qraiops/status"]
+  verbs: ["get", "update", "patch"]
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["pods", "nodes"]
+  verbs: ["get", "list"]
+
+---
+# ClusterRoleBinding for QRAIOP Controller
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: qraiop-controller-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: qraiop-controller-role
+subjects:
+- kind: ServiceAccount
+  name: qraiop-controller
+  namespace: qraiop-system
+
+---
+# Service Account for Chaos Engineering
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: qraiop-chaos
+  namespace: qraiop-system
+
+---
+# ClusterRole for Chaos Engineering
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: qraiop-chaos-role
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services"]
+  verbs: ["get", "list", "watch", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch", "patch"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["networkpolicies"]
+  verbs: ["get", "list", "watch", "create", "delete"]
+
+---
+# ClusterRoleBinding for Chaos Engineering
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: qraiop-chaos-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: qraiop-chaos-role
+subjects:
+- kind: ServiceAccount
+  name: qraiop-chaos
+  namespace: qraiop-system
