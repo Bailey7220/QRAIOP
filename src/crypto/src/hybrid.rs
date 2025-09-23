@@ -1,5 +1,6 @@
 //! Hybrid cryptography combining classical and post-quantum algorithms.
 
-use crate::pqc::{KeyEncapsulation, DigitalSignature};
-use crate::{Result, QraiopError, SecurityLevel};
+use crate::pqc::{DigitalSignature, KeyEncapsulation};
+use crate::{QraiopError, Result, SecurityLevel};
 use zeroize::Zeroize;
+
