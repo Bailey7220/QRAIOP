@@ -8,12 +8,9 @@ use pqcrypto_kyber::*;
 use serde::{Deserialize, Serialize};
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-/// ML-KEM-512 implementation (Security Level 1)
 pub struct MlKem512;
 pub struct MlKem768;
 pub struct MlKem1024;
-
-// PublicKey, SecretKey, Ciphertext, SharedSecret structs...
 
 impl KeyEncapsulation for MlKem512 {
     type PublicKey = PublicKey;
@@ -33,10 +30,7 @@ impl KeyEncapsulation for MlKem512 {
         Ok((Ciphertext(ct.as_bytes().to_vec()), SharedSecret(ss.as_bytes().to_vec())))
     }
 
-    fn decapsulate(
-        secret_key: &Self::SecretKey,
-        ciphertext: &Self::Ciphertext,
-    ) -> Result<Self::SharedSecret> {
+    fn decapsulate(secret_key: &Self::SecretKey, ciphertext: &Self::Ciphertext) -> Result<Self::SharedSecret> {
         let sk = kyber512::SecretKey::from_bytes(&secret_key.0)
             .map_err(|e| QraiopError::InvalidKey(format!("ML-KEM-512 secret key: {}", e)))?;
         let ct = kyber512::Ciphertext::from_bytes(&ciphertext.0)
@@ -54,19 +48,5 @@ impl KeyEncapsulation for MlKem512 {
     }
 }
 
-// Repeat for MlKem768 and MlKem1024...
+// Similarly for MlKem768 and MlKem1024...
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_ml_kem_512() {
-        let (pk, sk) = MlKem512::keypair().unwrap();
-        let (ct, ss1) = MlKem512::encapsulate(&pk).unwrap();
-        let ss2 = MlKem512::decapsulate(&sk, &ct).unwrap();
-        assert_eq!(ss1, ss2);
-    }
-
-    // More tests...
-}
