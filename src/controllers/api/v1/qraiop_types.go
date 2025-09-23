@@ -149,11 +149,11 @@ type ComponentStatus struct {
 
 // QraiopStatus defines the observed state of Qraiop
 type QraiopStatus struct {
-    Phase       string                    `json:"phase,omitempty"`
-    Message     string                    `json:"message,omitempty"`
+    Phase       string                     `json:"phase,omitempty"`
+    Message     string                     `json:"message,omitempty"`
     Components  map[string]ComponentStatus `json:"components,omitempty"`
-    LastUpdated metav1.Time               `json:"lastUpdated,omitempty"`
-    Conditions  []metav1.Condition        `json:"conditions,omitempty"`
+    LastUpdated metav1.Time                `json:"lastUpdated,omitempty"`
+    Conditions  []metav1.Condition         `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true
