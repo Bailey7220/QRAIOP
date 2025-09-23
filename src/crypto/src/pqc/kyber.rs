@@ -4,10 +4,18 @@
 
 use crate::pqc::KeyEncapsulation;
 use crate::{QraiopError, Result, SecurityLevel};
-use pqcrypto_kyber::*;
-use serde::{Deserialize, Serialize};
-use zeroize::{Zeroize, ZeroizeOnDrop};
 
+// Import the trait that provides as_bytes() and from_bytes()
+use pqcrypto_traits::kem::PublicKey as PQPublicKeyTrait;
+use pqcrypto_traits::kem::SecretKey as PQSecretKeyTrait;
+use pqcrypto_traits::kem::Ciphertext as PQCiphertextTrait;
+use pqcrypto_traits::kem::SharedSecret as PQSharedSecretTrait;
+
+// Import the concrete types
+use pqcrypto_kyber::{PublicKey, SecretKey, Ciphertext, SharedSecret};
+use pqcrypto_kyber::{kyber512, kyber768, kyber1024};
+
+/// ML-KEM-512 implementation (Security Level 1)
 pub struct MlKem512;
 pub struct MlKem768;
 pub struct MlKem1024;
@@ -20,23 +28,27 @@ impl KeyEncapsulation for MlKem512 {
 
     fn keypair() -> Result<(Self::PublicKey, Self::SecretKey)> {
         let (pk, sk) = kyber512::keypair();
-        Ok((PublicKey(pk.as_bytes().to_vec()), SecretKey(sk.as_bytes().to_vec())))
+        Ok((pk, sk))
     }
 
     fn encapsulate(public_key: &Self::PublicKey) -> Result<(Self::Ciphertext, Self::SharedSecret)> {
-        let pk = kyber512::PublicKey::from_bytes(&public_key.0)
+        // from_bytes is available via the PublicKey trait
+        let pk = PQPublicKeyTrait::from_bytes(public_key.as_bytes())
             .map_err(|e| QraiopError::InvalidKey(format!("ML-KEM-512 public key: {}", e)))?;
         let (ct, ss) = kyber512::encapsulate(&pk);
-        Ok((Ciphertext(ct.as_bytes().to_vec()), SharedSecret(ss.as_bytes().to_vec())))
+        Ok((ct, ss))
     }
 
-    fn decapsulate(secret_key: &Self::SecretKey, ciphertext: &Self::Ciphertext) -> Result<Self::SharedSecret> {
-        let sk = kyber512::SecretKey::from_bytes(&secret_key.0)
+    fn decapsulate(
+        secret_key: &Self::SecretKey,
+        ciphertext: &Self::Ciphertext,
+    ) -> Result<Self::SharedSecret> {
+        let sk = PQSecretKeyTrait::from_bytes(secret_key.as_bytes())
             .map_err(|e| QraiopError::InvalidKey(format!("ML-KEM-512 secret key: {}", e)))?;
-        let ct = kyber512::Ciphertext::from_bytes(&ciphertext.0)
+        let ct = PQCiphertextTrait::from_bytes(ciphertext.as_bytes())
             .map_err(|e| QraiopError::EncapsulationFailed(format!("Invalid ciphertext: {}", e)))?;
         let ss = kyber512::decapsulate(&ct, &sk);
-        Ok(SharedSecret(ss.as_bytes().to_vec()))
+        Ok(ss)
     }
 
     fn security_level() -> SecurityLevel {
@@ -48,5 +60,4 @@ impl KeyEncapsulation for MlKem512 {
     }
 }
 
-// Similarly for MlKem768 and MlKem1024...
-
+// Repeat for MlKem768 and MlKem1024 similarly...
